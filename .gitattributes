@@ -1,0 +1,5 @@
+# Windows 批处理脚本：统一用 CRLF 行尾
+# 注意：本仓库里的 .bat 内容为纯 ASCII（提示信息是英文），
+#      开头用 chcp 65001 切换代码页，任何编码下双击运行都不会乱码。
+*.bat text eol=crlf
+*.cmd text eol=crlf
