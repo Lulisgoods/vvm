@@ -1,12 +1,12 @@
 /* ==========================================================================
    商品数据文件（中英双语）—— 由「商品管理工具 admin.html / 采集工具」自动生成
-   生成时间：2026/11/14 21:05:55
+   生成时间：2026/11/15 00:02:21
    修改商品请打开 admin.html，不要手改这个文件。
    带 En 后缀的是英文字段，留空时英文界面自动回退显示中文。
    ========================================================================== */
 window.SHOP_DATA = {
   "version": 3,
-  "updatedAt": "2026-11-14T21:05:53",
+  "updatedAt": "2026-11-15T00:02:19",
   "shop": {
     "name": "Lulis",
     "nameEn": "Atelier Lumière",
@@ -176,7 +176,7 @@ window.SHOP_DATA = {
   "products": [],
   "chunked": true,
   "chunkSize": 500,
-  "total": 46270,
+  "total": 48269,
   "chunks": [
     "p/000.js",
     "p/001.js",
@@ -270,9 +270,15 @@ window.SHOP_DATA = {
     "p/089.js",
     "p/090.js",
     "p/091.js",
-    "p/092.js"
+    "p/092.js",
+    "p/093.js",
+    "p/094.js",
+    "p/095.js",
+    "p/096.js"
   ],
   "catCounts": {
+    "Lululemon": 1949,
+    "Womensclothing": 1935,
     "Wallets": 2590,
     "Accessories": 4145,
     "Scarf": 1281,
@@ -285,8 +291,6 @@ window.SHOP_DATA = {
     "Sneakers": 2956,
     "Luggage": 1563,
     "Topqualitybags": 5779,
-    "Highqualitybags": 3311,
-    "Lululemon": 949,
-    "Womensclothing": 936
+    "Highqualitybags": 3311
   }
 };
