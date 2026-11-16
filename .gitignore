@@ -56,3 +56,7 @@ runtime/
 MinGit/
 push_github.py
 推送到GitHub.bat
+
+# ---- 两个工具目录：整目录都不上传（本地照常使用）----
+_tools/
+tools/

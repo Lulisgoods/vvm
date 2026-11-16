@@ -61,6 +61,9 @@
       'empty.nofav.hint': '看到喜欢的点右上角小心心',
       'empty.none': '还没有上架商品',
       'empty.none.hint': '用管理工具添加第一件吧',
+      'loading.cat': '正在加载「{name}」的商品…',
+      'loading.all': '正在加载商品…',
+      'loading.hint': '已加载 {n} / {total} 件，马上就好',
       'price.inquire': '面议',
       'price.per': '/{u}',
       'save.off': '省{amount}',
@@ -140,6 +143,9 @@
       'empty.nofav.hint': 'Tap the heart on any product you like',
       'empty.none': 'No products yet',
       'empty.none.hint': 'Add your first item with the admin tool',
+      'loading.cat': 'Loading “{name}” items…',
+      'loading.all': 'Loading products…',
+      'loading.hint': '{n} of {total} loaded — almost there',
       'price.inquire': 'Ask for price',
       'price.per': '/{u}',
       'save.off': 'Save {amount}',
@@ -247,6 +253,9 @@
     raw: null,             /* 原始数据（分片模式下用来增量合并） */
     rawProducts: [],       /* 原始商品数组（未 normalize） */
     chunkAllDone: false,   /* 分片是否已全部加载完 */
+    mergedChunks: {},      /* 已经并入的商品片（防止重复合并） */
+    catChunks: null,       /* 每个分类落在哪几片（索引里给的，用来点了分类就优先加载） */
+    catLoading: {},        /* 正在优先加载的分类 */
     total: 0,              /* 全店可见商品总数（索引里给的，未加载完也准确） */
     catCounts: null,       /* 每个分类的件数（索引里给的） */
     pendingDetail: '',     /* 详情页要打开但商品还没加载到 */
@@ -684,6 +693,42 @@
     return n;
   }
 
+  /* ---------------- 分片还没到齐时的「加载中」判断 ----------------
+     索引里有每类/全店的真实件数，比一下就知道格子里是不是只显示了
+     已加载的那部分——这种时候绝不能对用户说「没有商品」。 */
+  function expectedCount() {
+    if (STATE.kw || STATE.favOnly) return -1;      /* 搜索/收藏没法预估 */
+    return STATE.cat === 'all' ? totalCount() : catCount(STATE.cat);
+  }
+
+  function stillLoading(list) {
+    if (!STATE.raw || !STATE.raw.chunked || STATE.chunkAllDone) return false;
+    if (STATE.favOnly && !STATE.favs.length) return false;
+    var n = list ? list.length : visible().length;
+    var exp = expectedCount();
+    if (exp < 0) return n === 0;
+    return n < exp;
+  }
+
+  function loadingHTML() {
+    var who = '', loaded = 0, total = 0;
+    if (STATE.cat !== 'all' && !STATE.kw && !STATE.favOnly) {
+      var c = STATE.data.categories.filter(function (x) { return x.id === STATE.cat; })[0];
+      who = c ? pick(c, 'name') : '';
+      var ps = STATE.data.products;
+      for (var i = 0; i < ps.length; i++) if (ps[i].category === STATE.cat) loaded++;
+      total = catCount(STATE.cat);
+    } else {
+      loaded = STATE.data.products.length;
+      total = totalCount();
+    }
+    var title = who ? t('loading.cat', { name: who }) : t('loading.all');
+    var hint = total ? t('loading.hint', { n: loaded, total: total }) : '';
+    return '<div class="grid-loading"><b>' + esc(title) + '</b>' +
+           (hint ? '<span>' + esc(hint) + '</span>' : '') + '</div>' +
+           skeletonHTML(Math.min(STATE.perPage, 8));
+  }
+
   /* 分页条的总件数：无筛选时用全店总数（分片没加载完也不会少算） */
   function pagerTotal(shown) {
     var filtering = STATE.kw || STATE.favOnly || STATE.cat !== 'all';
@@ -730,21 +775,28 @@
 
     if (!list.length) {
       var isFilter = STATE.kw || STATE.cat !== 'all' || STATE.favOnly;
-      $('#grid').innerHTML = '';
       var e = $('#empty');
-      e.hidden = false;
-      e.innerHTML =
-        '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
-        '<h3>' + (STATE.favOnly ? t('empty.nofav') : (isFilter ? t('empty.nomatch') : t('empty.none'))) + '</h3>' +
-        '<p>' + (STATE.favOnly ? t('empty.nofav.hint') : (isFilter ? t('empty.usereset') : t('empty.none.hint'))) + '</p>' +
-        (isFilter && !STATE.favOnly ? '<button class="btn btn-ghost btn-sm" id="resetFilter">' + t('empty.reset') + '</button>' : '');
-      var rf = $('#resetFilter');
-      if (rf) rf.onclick = function () {
-        STATE.kw = ''; STATE.cat = 'all'; STATE.favOnly = false; STATE.sort = 'default';
-        $('#q').value = ''; $('#sort').value = 'default';
-        if (location.hash && location.hash !== '#all') location.hash = '#all';
-        else { renderChrome(); renderGrid(); }
-      };
+      if (stillLoading(list)) {
+        /* 只是这一类的商品还在下载，别显示"没有商品"，先给骨架屏 + 进度 */
+        e.hidden = true;
+        e.innerHTML = '';
+        $('#grid').innerHTML = loadingHTML();
+      } else {
+        $('#grid').innerHTML = '';
+        e.hidden = false;
+        e.innerHTML =
+          '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+          '<h3>' + (STATE.favOnly ? t('empty.nofav') : (isFilter ? t('empty.nomatch') : t('empty.none'))) + '</h3>' +
+          '<p>' + (STATE.favOnly ? t('empty.nofav.hint') : (isFilter ? t('empty.usereset') : t('empty.none.hint'))) + '</p>' +
+          (isFilter && !STATE.favOnly ? '<button class="btn btn-ghost btn-sm" id="resetFilter">' + t('empty.reset') + '</button>' : '');
+        var rf = $('#resetFilter');
+        if (rf) rf.onclick = function () {
+          STATE.kw = ''; STATE.cat = 'all'; STATE.favOnly = false; STATE.sort = 'default';
+          $('#q').value = ''; $('#sort').value = 'default';
+          if (location.hash && location.hash !== '#all') location.hash = '#all';
+          else { renderChrome(); renderGrid(); }
+        };
+      }
     } else {
       $('#empty').hidden = true;
       var total = pagerTotal(list.length);
@@ -1216,6 +1268,7 @@
   function applyCat(c) {
     STATE.cat = c || 'all';
     STATE.page = 1;
+    ensureCatLoaded(STATE.cat);        /* 这一类的片还没到就先取，别让用户看空页 */
     renderChrome();
     renderGrid();
     var anchor = $('#products').offsetTop - 80;
@@ -1256,6 +1309,32 @@
     return pr;
   }
 
+  /* 点了某个分类，但这一类的商品还在后面的分片里 → 不等排队，
+     把含这一类的片先取回来（索引里的 catChunks 直接告诉我们第几片）。 */
+  function ensureCatLoaded(cat) {
+    var meta = STATE.raw;
+    if (!meta || !meta.chunked || STATE.chunkAllDone) return;
+    if (!cat || cat === 'all') return;
+    var idxs = (STATE.catChunks || {})[cat] || [];
+    if (!idxs.length || STATE.catLoading[cat]) return;
+    STATE.catLoading[cat] = true;
+    var i = 0;
+    function next() {
+      if (i >= idxs.length || STATE.chunkAllDone) { STATE.catLoading[cat] = false; return; }
+      var cur = idxs[i];
+      i += 1;
+      if (STATE.mergedChunks[cur]) { next(); return; }
+      loadChunk(meta, cur).then(function (arr) {
+        mergeChunk(arr, cur);
+        scheduleRefresh(true);
+        setTimeout(next, 20);
+      }).catch(function () {
+        setTimeout(next, 120);
+      });
+    }
+    next();
+  }
+
   /* 合并完一片要刷新界面：数量、分类数字、分页、当前页内容。
      当前页的商品没变就只改文字，不重建卡片（避免图片闪、也省性能）。 */
   var mergeTimer = 0;
@@ -1293,7 +1372,13 @@
     mergeTimer = setTimeout(refreshMerged, 80);
   }
 
-  function mergeChunk(items) {
+  function mergeChunk(items, idx) {
+    /* 同一片可能被「后台补片」和「点分类后的优先加载」同时拿到，
+       这里按片号去重，否则商品会在列表里出现两遍。 */
+    if (idx != null) {
+      if (STATE.mergedChunks[idx]) return;
+      STATE.mergedChunks[idx] = true;
+    }
     if (!items || !items.length) return;
     STATE.rawProducts = STATE.rawProducts.concat(items);
     /* 只规范化新来的这一片再拼到尾部，不用每次把已有商品全部重算 */
@@ -1314,6 +1399,7 @@
       var data = {};
       Object.keys(meta).forEach(function (k) { data[k] = meta[k]; });
       data.products = first || [];
+      STATE.mergedChunks[0] = true;
       boot(data, lang);
       var n = (meta.chunks || []).length;
       var i = 1;
@@ -1331,7 +1417,7 @@
         var cur = i;
         i += 1;
         loadChunk(meta, cur).then(function (arr) {
-          mergeChunk(arr);
+          mergeChunk(arr, cur);
           setTimeout(step, 20);
         }).catch(function () {
           setTimeout(step, 300);
@@ -1348,6 +1434,7 @@
     STATE.raw = data;
     STATE.total = Number(data.total) || 0;
     STATE.catCounts = (data.catCounts && typeof data.catCounts === 'object') ? data.catCounts : null;
+    STATE.catChunks = (data.catChunks && typeof data.catChunks === 'object') ? data.catChunks : null;
     STATE.rawProducts = (Array.isArray(data.products) ? data.products : []).slice();
     STATE.data = normalize(data);
     if (!langEnabled() && STATE.lang === 'en') STATE.lang = STATE.data.shop.i18n.default || 'zh';

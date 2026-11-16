@@ -341,6 +341,15 @@ input, select, textarea { font: inherit; color: inherit; }
 .sk-line.w60 { width: 60%; }
 .sk-line.w34 { width: 34%; }
 
+/* 分片还没加载完时的占位说明（横跨整个网格） */
+.grid-loading {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 8px 0 4px; text-align: center;
+}
+.grid-loading b { font-size: 15px; font-weight: 500; color: var(--ink-2); }
+.grid-loading span { font-size: 12.5px; color: var(--ink-3); }
+
 /* ------------------------------- 详情弹层 ------------------------------ */
 .modal {
   position: fixed; inset: 0; z-index: 200;
