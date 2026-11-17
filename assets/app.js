@@ -48,6 +48,8 @@
       'sort.asc': '价格从低到高',
       'sort.desc': '价格从高到低',
       'updated.at': '更新于 {d}',
+      'card.listed': '{d} 上架',
+      'detail.listed': '上架时间：{d}',
       'more': '加载更多',
       'more.n': '加载更多（还有 {n} 件）',
       'pager.prev': '上一页',
@@ -130,6 +132,8 @@
       'sort.asc': 'Price: Low to High',
       'sort.desc': 'Price: High to Low',
       'updated.at': 'Updated {d}',
+      'card.listed': 'Listed {d}',
+      'detail.listed': 'Listed on {d}',
       'more': 'Load More',
       'more.n': 'Load More ({n} left)',
       'pager.prev': 'Prev',
@@ -621,6 +625,21 @@
     return '';
   }
 
+  /* 上架时间：addedAt 精确到秒（采集/后台新增时记录），老数据退回 createdAt（只有日期） */
+  function prodDate(p) {
+    var s = String(p.addedAt || p.createdAt || '').trim();
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+    if (!m) return null;
+    var pad = function (x) { return ('0' + x).slice(-2); };
+    var y = m[1], mo = pad(m[2]), d = pad(m[3]);
+    return {
+      y: y,
+      md: mo + '-' + d,
+      date: y + '-' + mo + '-' + d,
+      full: y + '-' + mo + '-' + d + (m[4] ? ' ' + pad(m[4]) + ':' + m[5] : '')
+    };
+  }
+
   function cardHTML(p, idx) {
     var nm = pick(p, 'name');
     var img0 = p.images[0] || fallbackImg();
@@ -642,6 +661,8 @@
     var unit = pair(p.unit, p.unitEn);
     var sizes = itemSizes(p);
     var catName = p.categoryObj ? pick(p.categoryObj, 'name') : '';
+    var pd = prodDate(p);
+    var listed = pd ? t('card.listed', { d: pd.y === String(new Date().getFullYear()) ? pd.md : pd.date }) : '';
 
     return '<article class="card' + (p.soldOut ? ' is-sold' : '') + '" data-id="' + esc(p.id) + '" ' +
         'style="animation-delay:' + Math.min(idx * 22, 420) + 'ms">' +
@@ -668,6 +689,8 @@
           (p.colors.length ? '<span class="swatches">' + p.colors.slice(0, 4).map(function (c) {
             return '<i class="sw" style="background:' + escA(c.hex || '#ddd') + '"></i>';
           }).join('') + '</span>' : '') +
+          (listed ? (catName || sizes.length || p.colors.length ? '<span class="dot">·</span>' : '') +
+            '<span class="card-date">' + esc(listed) + '</span>' : '') +
         '</div>' +
       '</div>' +
     '</article>';
@@ -927,6 +950,7 @@
 
     var desc = pair(p.description, p.descriptionEn);
     var catName = p.categoryObj ? pick(p.categoryObj, 'name') : '';
+    var pd = prodDate(p);
     var shownPrice = p.price == null ? t('price.inquire') : curSym() + fmtNum(p.price);
     var askText = t('ask.tpl', {
       name: nm,
@@ -958,6 +982,7 @@
         (catName ? '<div class="hero-eyebrow" style="margin-bottom:12px">' + esc(catName) + '</div>' : '') +
         '<h2>' + esc(nm) + '</h2>' +
         '<div class="price-row">' + priceHTML + '</div>' +
+        (pd ? '<div class="listed">' + esc(t('detail.listed', { d: pd.full })) + '</div>' : '') +
         (tags.length ? '<div class="tags">' + tags.map(function (tg) { return '<span class="tag">' + esc(tg) + '</span>'; }).join('') + '</div>' : '') +
         (desc ? '<p class="desc">' + esc(desc) + '</p>' : '') +
         (optHTML ? '<div class="rule"></div>' + optHTML : '') +

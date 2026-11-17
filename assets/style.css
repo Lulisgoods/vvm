@@ -320,6 +320,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .save { font-size: 11px; color: var(--danger); border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; line-height: 16px; }
 .card-sub { font-size: 12.5px; color: var(--ink-3); display: flex; gap: 10px; flex-wrap: wrap; }
 .card-sub .dot { color: var(--ink-4); }
+.card-sub .card-date { color: var(--ink-4); font-size: 11.5px; }
 .swatches { display: flex; gap: 4px; }
 .sw { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
 
@@ -457,6 +458,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .detail .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
 .detail .price { font-size: 30px; }
 .detail .price .cur { font-size: 16px; }
+.detail .listed { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
 .detail .desc { color: var(--ink-2); font-size: 14.5px; margin: 20px 0 0; white-space: pre-wrap; }
 
 .rule { height: 1px; background: var(--line-2); margin: 24px 0; }
