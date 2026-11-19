@@ -1,12 +1,12 @@
 /* ==========================================================================
    商品数据文件（中英双语）—— 由「商品管理工具 admin.html / 采集工具」自动生成
-   生成时间：2026/11/15 00:02:21
+   生成时间：2026/11/19 19:32:15
    修改商品请打开 admin.html，不要手改这个文件。
    带 En 后缀的是英文字段，留空时英文界面自动回退显示中文。
    ========================================================================== */
 window.SHOP_DATA = {
   "version": 3,
-  "updatedAt": "2026-11-15T00:02:19",
+  "updatedAt": "2026-11-19T19:32:13",
   "shop": {
     "name": "Lulis",
     "nameEn": "Atelier Lumière",
@@ -176,7 +176,7 @@ window.SHOP_DATA = {
   "products": [],
   "chunked": true,
   "chunkSize": 500,
-  "total": 48269,
+  "total": 61011,
   "chunks": [
     "p/000.js",
     "p/001.js",
@@ -274,23 +274,50 @@ window.SHOP_DATA = {
     "p/093.js",
     "p/094.js",
     "p/095.js",
-    "p/096.js"
+    "p/096.js",
+    "p/097.js",
+    "p/098.js",
+    "p/099.js",
+    "p/100.js",
+    "p/101.js",
+    "p/102.js",
+    "p/103.js",
+    "p/104.js",
+    "p/105.js",
+    "p/106.js",
+    "p/107.js",
+    "p/108.js",
+    "p/109.js",
+    "p/110.js",
+    "p/111.js",
+    "p/112.js",
+    "p/113.js",
+    "p/114.js",
+    "p/115.js",
+    "p/116.js",
+    "p/117.js",
+    "p/118.js",
+    "p/119.js",
+    "p/120.js",
+    "p/121.js",
+    "p/122.js"
   ],
   "catCounts": {
-    "Lululemon": 1949,
-    "Womensclothing": 1935,
-    "Wallets": 2590,
-    "Accessories": 4145,
+    "Kidsitems": 977,
+    "Lululemon": 2949,
+    "Womensclothing": 2874,
+    "Wallets": 2789,
+    "Accessories": 5112,
+    "Womenshoes": 3953,
+    "Jewelry": 3963,
+    "Watches": 9017,
+    "Mensclothes": 3963,
+    "Belts": 3966,
+    "Sneakers": 3956,
+    "Luggage": 2535,
+    "Topqualitybags": 6752,
+    "Highqualitybags": 4030,
     "Scarf": 1281,
-    "Eyewear": 2894,
-    "Womenshoes": 2954,
-    "Jewelry": 2963,
-    "Watches": 8017,
-    "Mensclothes": 2966,
-    "Belts": 2966,
-    "Sneakers": 2956,
-    "Luggage": 1563,
-    "Topqualitybags": 5779,
-    "Highqualitybags": 3311
+    "Eyewear": 2894
   }
 };
